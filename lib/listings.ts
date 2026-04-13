@@ -3,7 +3,6 @@ export type ListingStatus = "available" | "sold";
 export type Listing = {
   id: string;
   title: string;
-  price: number;
   description: string;
   status: ListingStatus;
   images: string[];
@@ -16,7 +15,6 @@ export const seedListings: Listing[] = [
   {
     id: "central-park-residence",
     title: "Central Park Residence",
-    price: 245000,
     description:
       "Bright 2-bedroom home with modern kitchen, large windows, and quick access to shopping, schools, and the city center.",
     status: "available",
@@ -30,7 +28,6 @@ export const seedListings: Listing[] = [
   {
     id: "sunset-villa",
     title: "Sunset Villa",
-    price: 390000,
     description:
       "Spacious family villa with private garden, airy living room, and warm neutral finishes for a relaxed everyday feel.",
     status: "available",
@@ -43,7 +40,6 @@ export const seedListings: Listing[] = [
   {
     id: "green-view-studio",
     title: "Green View Studio",
-    price: 98000,
     description:
       "Compact studio apartment with balcony view, smart layout, and easy maintenance, ideal for first-time buyers or investors.",
     status: "sold",
@@ -54,14 +50,6 @@ export const seedListings: Listing[] = [
     createdAt: "2026-03-28T09:10:00.000Z"
   }
 ];
-
-export function formatPrice(price: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0
-  }).format(price);
-}
 
 export function sortListings(listings: Listing[]) {
   return [...listings].sort(
@@ -77,4 +65,15 @@ export function createListingId(title: string) {
     .replace(/^-+|-+$/g, "");
 
   return `${slug || "listing"}-${Date.now()}`;
+}
+
+export function getWhatsAppUrl(title: string) {
+  const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
+  if (!phone) {
+    return "#";
+  }
+
+  const normalizedPhone = phone.replace(/[^\d]/g, "");
+  const message = encodeURIComponent(`Halo, saya ingin tanya harga untuk properti ${title}.`);
+  return `https://wa.me/${normalizedPhone}?text=${message}`;
 }

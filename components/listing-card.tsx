@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatPrice, Listing } from "@/lib/listings";
+import { getWhatsAppUrl, Listing } from "@/lib/listings";
 import { StatusBadge } from "@/components/status-badge";
 import { deleteListing } from "@/lib/storage";
 import { useState } from "react";
@@ -48,11 +48,18 @@ export function ListingCard({ listing, isAdmin }: ListingCardProps) {
             <Link href={`/listing/${listing.id}`} className="text-xl font-bold text-slate-900 hover:text-brand">
               {listing.title}
             </Link>
-            <p className="mt-2 text-2xl font-black text-brand">{formatPrice(listing.price)}</p>
           </div>
           <StatusBadge status={listing.status} />
         </div>
         <p className="line-clamp-3 text-sm leading-6 text-slate-600">{listing.description}</p>
+        <a
+          href={getWhatsAppUrl(listing.title)}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600"
+        >
+          Tanya Harga via WhatsApp
+        </a>
         {isAdmin ? (
           <div className="flex flex-wrap gap-3 pt-2">
             <Link

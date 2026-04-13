@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/status-badge";
-import { formatPrice, Listing } from "@/lib/listings";
+import { getWhatsAppUrl, Listing } from "@/lib/listings";
 import { deleteListing } from "@/lib/storage";
 
 type ListingDetailProps = {
@@ -99,7 +99,14 @@ export function ListingDetail({ listing, isAdmin }: ListingDetailProps) {
             </div>
           ) : null}
           <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-900">{listing.title}</h1>
-          <p className="mt-3 text-4xl font-black text-brand">{formatPrice(listing.price)}</p>
+          <a
+            href={getWhatsAppUrl(listing.title)}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-5 inline-flex rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
+          >
+            Tanya Harga via WhatsApp
+          </a>
           <div className="mt-8 border-t border-stone-200 pt-6">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">Description</h2>
             <p className="mt-4 text-base leading-8 text-slate-600">{listing.description}</p>

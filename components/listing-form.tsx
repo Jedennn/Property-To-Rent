@@ -9,14 +9,12 @@ import { saveListing } from "@/lib/storage";
 
 type FormState = {
   title: string;
-  price: string;
   description: string;
   status: ListingStatus;
 };
 
 const initialForm: FormState = {
   title: "",
-  price: "",
   description: "",
   status: "available"
 };
@@ -32,7 +30,6 @@ export function ListingForm({ initialListing }: ListingFormProps) {
     initialListing
       ? {
           title: initialListing.title,
-          price: String(initialListing.price),
           description: initialListing.description,
           status: initialListing.status
         }
@@ -62,7 +59,7 @@ export function ListingForm({ initialListing }: ListingFormProps) {
     setError("");
 
     const hasImages = files.length > 0 || (initialListing?.images.length ?? 0) > 0;
-    if (!form.title || !form.price || !form.description || !hasImages) {
+    if (!form.title || !form.description || !hasImages) {
       setError("Please complete all fields and upload at least one image.");
       return;
     }
@@ -75,7 +72,6 @@ export function ListingForm({ initialListing }: ListingFormProps) {
       const nextListing: Listing = {
         id: initialListing?.id ?? createListingId(form.title),
         title: form.title.trim(),
-        price: Number(form.price),
         description: form.description.trim(),
         status: form.status,
         images,
@@ -87,7 +83,6 @@ export function ListingForm({ initialListing }: ListingFormProps) {
         initialListing
           ? {
               title: nextListing.title,
-              price: String(nextListing.price),
               description: nextListing.description,
               status: nextListing.status
             }
@@ -133,29 +128,15 @@ export function ListingForm({ initialListing }: ListingFormProps) {
         ) : null}
 
         <form className="space-y-6" onSubmit={handleSubmit}>
-          <div className="grid gap-6 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Title</span>
-              <input
-                value={form.title}
-                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                className="w-full rounded-2xl border border-stone-300 px-4 py-3 transition focus:border-brand"
-                placeholder="Modern family home"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Price</span>
-              <input
-                type="number"
-                min="0"
-                value={form.price}
-                onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
-                className="w-full rounded-2xl border border-stone-300 px-4 py-3 transition focus:border-brand"
-                placeholder="250000"
-              />
-            </label>
-          </div>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-700">Title</span>
+            <input
+              value={form.title}
+              onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+              className="w-full rounded-2xl border border-stone-300 px-4 py-3 transition focus:border-brand"
+              placeholder="Modern family home"
+            />
+          </label>
 
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700">Description</span>

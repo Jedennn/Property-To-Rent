@@ -8,7 +8,7 @@ Simple property listing website built with Next.js and Tailwind CSS.
 - Detail page for each listing
 - Admin page to add a new listing
 - Multiple image upload support
-- Fields for title, price, description, images, and status
+- Fields for title, description, images, and status
 
 ## Run locally
 
@@ -31,3 +31,4 @@ npm run dev
 - New listings are stored in the browser using `localStorage`.
 - Seed listings are included so the homepage is not empty on first load.
 - Set `ADMIN_PASSWORD` in your environment or Vercel project settings to protect admin access.
+- Set `NEXT_PUBLIC_WHATSAPP_NUMBER` in your environment or Vercel project settings for the WhatsApp inquiry button.
