@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminNavActions } from "@/components/admin-nav-actions";
+import { isAdminSession } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,6 +14,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isAdmin = isAdminSession();
+
   return (
     <html lang="en">
       <body>
@@ -27,12 +31,7 @@ export default function RootLayout({
               >
                 Listings
               </Link>
-              <Link
-                href="/admin"
-                className="rounded-full bg-brand px-4 py-2 text-white transition hover:bg-brand-dark"
-              >
-                Add Listing
-              </Link>
+              <AdminNavActions isAdmin={isAdmin} />
             </nav>
           </div>
         </header>

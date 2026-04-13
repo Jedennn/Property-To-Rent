@@ -7,9 +7,10 @@ import { ListingDetail } from "@/components/listing-detail";
 
 type ListingDetailShellProps = {
   id: string;
+  isAdmin: boolean;
 };
 
-export function ListingDetailShell({ id }: ListingDetailShellProps) {
+export function ListingDetailShell({ id, isAdmin }: ListingDetailShellProps) {
   const [listing, setListing] = useState<Listing | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -41,5 +42,5 @@ export function ListingDetailShell({ id }: ListingDetailShellProps) {
     );
   }
 
-  return <ListingDetail listing={listing} />;
+  return <ListingDetail listing={listing} isAdmin={isAdmin} />;
 }

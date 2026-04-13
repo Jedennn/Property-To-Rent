@@ -5,7 +5,11 @@ import { ListingCard } from "@/components/listing-card";
 import { Listing } from "@/lib/listings";
 import { getStoredListings } from "@/lib/storage";
 
-export function ListingsGrid() {
+type ListingsGridProps = {
+  isAdmin: boolean;
+};
+
+export function ListingsGrid({ isAdmin }: ListingsGridProps) {
   const [listings, setListings] = useState<Listing[]>([]);
 
   useEffect(() => {
@@ -33,7 +37,7 @@ export function ListingsGrid() {
       {listings.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {listings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
+            <ListingCard key={listing.id} listing={listing} isAdmin={isAdmin} />
           ))}
         </div>
       ) : (

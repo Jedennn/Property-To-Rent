@@ -10,9 +10,10 @@ import { deleteListing } from "@/lib/storage";
 
 type ListingDetailProps = {
   listing: Listing;
+  isAdmin: boolean;
 };
 
-export function ListingDetail({ listing }: ListingDetailProps) {
+export function ListingDetail({ listing, isAdmin }: ListingDetailProps) {
   const router = useRouter();
   const gallery = listing.images.filter(Boolean);
   const [selectedImage, setSelectedImage] = useState(gallery[0]);
@@ -79,22 +80,24 @@ export function ListingDetail({ listing }: ListingDetailProps) {
               Listed {new Date(listing.createdAt).toLocaleDateString("en-US")}
             </p>
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href={`/admin/${listing.id}`}
-              className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark"
-            >
-              Edit
-            </Link>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={deleting}
-              className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {deleting ? "Deleting..." : "Delete"}
-            </button>
-          </div>
+          {isAdmin ? (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href={`/admin/${listing.id}`}
+                className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark"
+              >
+                Edit
+              </Link>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          ) : null}
           <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-900">{listing.title}</h1>
           <p className="mt-3 text-4xl font-black text-brand">{formatPrice(listing.price)}</p>
           <div className="mt-8 border-t border-stone-200 pt-6">

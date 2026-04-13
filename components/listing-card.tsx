@@ -10,9 +10,10 @@ import { useState } from "react";
 
 type ListingCardProps = {
   listing: Listing;
+  isAdmin: boolean;
 };
 
-export function ListingCard({ listing }: ListingCardProps) {
+export function ListingCard({ listing, isAdmin }: ListingCardProps) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
 
@@ -52,22 +53,24 @@ export function ListingCard({ listing }: ListingCardProps) {
           <StatusBadge status={listing.status} />
         </div>
         <p className="line-clamp-3 text-sm leading-6 text-slate-600">{listing.description}</p>
-        <div className="flex flex-wrap gap-3 pt-2">
-          <Link
-            href={`/admin/${listing.id}`}
-            className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark"
-          >
-            Edit
-          </Link>
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleting}
-            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {deleting ? "Deleting..." : "Delete"}
-          </button>
-        </div>
+        {isAdmin ? (
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Link
+              href={`/admin/${listing.id}`}
+              className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark"
+            >
+              Edit
+            </Link>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

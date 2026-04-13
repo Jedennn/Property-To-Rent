@@ -30,3 +30,4 @@ npm run dev
 
 - New listings are stored in the browser using `localStorage`.
 - Seed listings are included so the homepage is not empty on first load.
+- Set `ADMIN_PASSWORD` in your environment or Vercel project settings to protect admin access.
