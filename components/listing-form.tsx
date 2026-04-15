@@ -83,10 +83,10 @@ export function ListingForm({ initialListing }: ListingFormProps) {
         body: JSON.stringify(payload)
       });
 
-      const data = (await response.json()) as { error?: string; listing?: Listing };
+      const data = (await readJsonSafely(response)) as { error?: string; listing?: Listing } | null;
 
-      if (!response.ok || !data.listing) {
-        throw new Error(data.error ?? "Failed to save listing.");
+      if (!response.ok || !data?.listing) {
+        throw new Error(data?.error ?? `Failed to save listing (${response.status}).`);
       }
 
       const nextListing = data.listing;
@@ -238,17 +238,23 @@ export function ListingForm({ initialListing }: ListingFormProps) {
 
 async function uploadFileToCloudinary(file: File) {
   const signatureResponse = await fetch("/api/uploads/signature", { cache: "no-store" });
-  const signatureData = (await signatureResponse.json()) as {
-    error?: string;
-    cloudName?: string;
-    apiKey?: string;
-    folder?: string;
-    timestamp?: number;
-    signature?: string;
-  };
+  const signatureData = (await readJsonSafely(signatureResponse)) as
+    | {
+        error?: string;
+        cloudName?: string;
+        apiKey?: string;
+        folder?: string;
+        timestamp?: number;
+        signature?: string;
+      }
+    | null;
+
+  if (!signatureData) {
+    throw new Error(`Cloudinary signature request failed (${signatureResponse.status}).`);
+  }
 
   if (!signatureResponse.ok || !signatureData.cloudName || !signatureData.apiKey || !signatureData.signature) {
-    throw new Error(signatureData.error ?? "Cloudinary upload is not ready yet.");
+    throw new Error(signatureData.error ?? `Cloudinary upload is not ready yet (${signatureResponse.status}).`);
   }
 
   const uploadBody = new FormData();
@@ -266,11 +272,29 @@ async function uploadFileToCloudinary(file: File) {
     }
   );
 
-  const uploadData = (await uploadResponse.json()) as { secure_url?: string; error?: { message?: string } };
+  const uploadData = (await readJsonSafely(uploadResponse)) as
+    | { secure_url?: string; error?: { message?: string } }
+    | null;
 
-  if (!uploadResponse.ok || !uploadData.secure_url) {
-    throw new Error(uploadData.error?.message ?? "Failed to upload image to Cloudinary.");
+  if (!uploadResponse.ok || !uploadData?.secure_url) {
+    throw new Error(
+      uploadData?.error?.message ?? `Failed to upload image to Cloudinary (${uploadResponse.status}).`
+    );
   }
 
   return uploadData.secure_url;
+}
+
+async function readJsonSafely(response: Response) {
+  const text = await response.text();
+
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
 }
