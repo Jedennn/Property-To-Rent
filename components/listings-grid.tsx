@@ -18,7 +18,7 @@ export function ListingsGrid({ isAdmin, initialListings }: ListingsGridProps) {
 
   return (
     <section className="shell">
-      <div className="mb-8 flex flex-col gap-4 rounded-[2rem] bg-white p-6 shadow-card sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-8 rounded-[2rem] bg-white p-6 shadow-card">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand">Berpengalaman & Terpercaya</p>
           <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-900">
@@ -27,10 +27,6 @@ export function ListingsGrid({ isAdmin, initialListings }: ListingsGridProps) {
           <p className="mt-3 max-w-2xl text-slate-600">
             Siap melayani 24 jam.
           </p>
-        </div>
-        <div className="rounded-2xl bg-brand-soft px-5 py-4 text-right">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Total Unit</p>
-          <p className="mt-1 text-3xl font-black text-slate-900">{listings.length}</p>
         </div>
       </div>
 
