@@ -22,6 +22,9 @@ type ListingFormProps = {
   initialListing?: Listing;
 };
 
+const MAX_IMAGE_COUNT = 10;
+const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024;
+
 export function ListingForm({ initialListing }: ListingFormProps) {
   const router = useRouter();
   const isEditing = Boolean(initialListing);
@@ -112,6 +115,23 @@ export function ListingForm({ initialListing }: ListingFormProps) {
 
   function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.target.files ?? []);
+
+    if (selected.length > MAX_IMAGE_COUNT) {
+      setError(`You can upload up to ${MAX_IMAGE_COUNT} images per listing.`);
+      event.target.value = "";
+      setFiles([]);
+      return;
+    }
+
+    const oversizedFile = selected.find((file) => file.size > MAX_IMAGE_SIZE_BYTES);
+    if (oversizedFile) {
+      setError(`Each image must be 8 MB or smaller. Problem file: ${oversizedFile.name}`);
+      event.target.value = "";
+      setFiles([]);
+      return;
+    }
+
+    setError("");
     setFiles(selected);
   }
 
@@ -192,6 +212,9 @@ export function ListingForm({ initialListing }: ListingFormProps) {
                 Leave empty to keep current images, or upload new ones to replace them.
               </p>
             ) : null}
+            <p className="mt-2 text-xs text-slate-500">
+              Up to {MAX_IMAGE_COUNT} images. Maximum 8 MB per image.
+            </p>
           </label>
 
           {initialListing && files.length === 0 && initialListing.images.length > 0 ? (
