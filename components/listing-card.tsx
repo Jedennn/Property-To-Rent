@@ -5,28 +5,38 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getWhatsAppUrl, Listing } from "@/lib/listings";
 import { StatusBadge } from "@/components/status-badge";
-import { deleteListing } from "@/lib/storage";
 import { useState } from "react";
 
 type ListingCardProps = {
   listing: Listing;
   isAdmin: boolean;
+  onDelete?: (id: string) => void;
 };
 
-export function ListingCard({ listing, isAdmin }: ListingCardProps) {
+export function ListingCard({ listing, isAdmin, onDelete }: ListingCardProps) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
 
-  function handleDelete() {
+  async function handleDelete() {
     const confirmed = window.confirm(`Delete "${listing.title}"?`);
     if (!confirmed) {
       return;
     }
 
     setDeleting(true);
-    deleteListing(listing.id);
-    router.refresh();
-    window.location.reload();
+
+    try {
+      const response = await fetch(`/api/listings/${listing.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        throw new Error("Failed to delete listing");
+      }
+
+      onDelete?.(listing.id);
+      router.refresh();
+    } catch {
+      window.alert("Failed to delete listing. Please try again.");
+      setDeleting(false);
+    }
   }
 
   return (

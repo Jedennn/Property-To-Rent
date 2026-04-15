@@ -4,8 +4,7 @@ import Image from "next/image";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createListingId, Listing, ListingStatus } from "@/lib/listings";
-import { saveListing } from "@/lib/storage";
+import { Listing, ListingStatus } from "@/lib/listings";
 
 type FormState = {
   title: string;
@@ -69,16 +68,30 @@ export function ListingForm({ initialListing }: ListingFormProps) {
     try {
       const images =
         files.length > 0 ? await Promise.all(files.map(fileToDataUrl)) : (initialListing?.images ?? []);
-      const nextListing: Listing = {
-        id: initialListing?.id ?? createListingId(form.title),
+
+      const payload = {
         title: form.title.trim(),
         description: form.description.trim(),
         status: form.status,
-        images,
-        createdAt: initialListing?.createdAt ?? new Date().toISOString()
+        images
       };
 
-      saveListing(nextListing);
+      const response = await fetch(isEditing ? `/api/listings/${initialListing?.id}` : "/api/listings", {
+        method: isEditing ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = (await response.json()) as { error?: string; listing?: Listing };
+
+      if (!response.ok || !data.listing) {
+        throw new Error(data.error ?? "Failed to save listing.");
+      }
+
+      const nextListing = data.listing;
+
       setForm(
         initialListing
           ? {
@@ -91,8 +104,8 @@ export function ListingForm({ initialListing }: ListingFormProps) {
       setFiles([]);
       router.push(`/listing/${nextListing.id}`);
       router.refresh();
-    } catch {
-      setError("Something went wrong while preparing the images. Please try again.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Something went wrong while saving the listing.");
     } finally {
       setSubmitting(false);
     }

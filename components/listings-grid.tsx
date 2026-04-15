@@ -3,18 +3,18 @@
 import { useEffect, useState } from "react";
 import { ListingCard } from "@/components/listing-card";
 import { Listing } from "@/lib/listings";
-import { getStoredListings } from "@/lib/storage";
 
 type ListingsGridProps = {
   isAdmin: boolean;
+  initialListings: Listing[];
 };
 
-export function ListingsGrid({ isAdmin }: ListingsGridProps) {
-  const [listings, setListings] = useState<Listing[]>([]);
+export function ListingsGrid({ isAdmin, initialListings }: ListingsGridProps) {
+  const [listings, setListings] = useState<Listing[]>(initialListings);
 
   useEffect(() => {
-    setListings(getStoredListings());
-  }, []);
+    setListings(initialListings);
+  }, [initialListings]);
 
   return (
     <section className="shell">
@@ -37,7 +37,12 @@ export function ListingsGrid({ isAdmin }: ListingsGridProps) {
       {listings.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {listings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} isAdmin={isAdmin} />
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              isAdmin={isAdmin}
+              onDelete={(id) => setListings((current) => current.filter((item) => item.id !== id))}
+            />
           ))}
         </div>
       ) : (

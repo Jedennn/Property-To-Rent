@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/status-badge";
 import { getWhatsAppUrl, Listing } from "@/lib/listings";
-import { deleteListing } from "@/lib/storage";
 
 type ListingDetailProps = {
   listing: Listing;
@@ -23,16 +22,26 @@ export function ListingDetail({ listing, isAdmin }: ListingDetailProps) {
     setSelectedImage(gallery[0]);
   }, [listing.id]);
 
-  function handleDelete() {
+  async function handleDelete() {
     const confirmed = window.confirm(`Delete "${listing.title}"?`);
     if (!confirmed) {
       return;
     }
 
     setDeleting(true);
-    deleteListing(listing.id);
-    router.push("/");
-    router.refresh();
+
+    try {
+      const response = await fetch(`/api/listings/${listing.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        throw new Error("Failed to delete listing");
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      window.alert("Failed to delete listing. Please try again.");
+      setDeleting(false);
+    }
   }
 
   return (

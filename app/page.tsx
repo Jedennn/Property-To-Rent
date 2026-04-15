@@ -1,6 +1,10 @@
-import { isAdminSession } from "@/lib/auth";
+import { unstable_noStore as noStore } from "next/cache";
 import { ListingsGrid } from "@/components/listings-grid";
+import { isAdminSession } from "@/lib/auth";
+import { getListings } from "@/lib/server-listings";
 
-export default function HomePage() {
-  return <ListingsGrid isAdmin={isAdminSession()} />;
+export default async function HomePage() {
+  noStore();
+
+  return <ListingsGrid isAdmin={isAdminSession()} initialListings={await getListings()} />;
 }

@@ -28,7 +28,14 @@ npm run dev
 
 ## Notes
 
-- New listings are stored in the browser using `localStorage`.
-- Seed listings are included so the homepage is not empty on first load.
+- Listings now load from the server API instead of browser `localStorage`, so edits can sync across devices.
+- For local development without KV, the app falls back to [data/listings.json](/C:/Users/denys/Desktop/property-listing/data/listings.json).
+- On Vercel, connect a KV store so create, edit, and delete actions persist after deployment.
 - Set `ADMIN_PASSWORD` in your environment or Vercel project settings to protect admin access.
 - Set `NEXT_PUBLIC_WHATSAPP_NUMBER` in your environment or Vercel project settings for the WhatsApp inquiry button.
+
+## Vercel Sync Setup
+
+1. In Vercel, open your project and add a `KV` storage integration.
+2. Redeploy the project after Vercel injects `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
+3. After redeploy, listings created from phone and laptop will use the same shared server storage.
