@@ -37,22 +37,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const payload = normalizePayload((await request.json()) as ListingPayload);
+  try {
+    const payload = normalizePayload((await request.json()) as ListingPayload);
 
-  if (!payload) {
+    if (!payload) {
+      return NextResponse.json(
+        { error: "Title, description, status, and at least one image are required." },
+        { status: 400 }
+      );
+    }
+
+    const listing = {
+      id: createListingId(payload.title),
+      ...payload,
+      createdAt: new Date().toISOString()
+    };
+
+    await createListing(listing);
+
+    return NextResponse.json({ listing }, { status: 201 });
+  } catch (error) {
     return NextResponse.json(
-      { error: "Title, description, status, and at least one image are required." },
-      { status: 400 }
+      { error: error instanceof Error ? error.message : "Failed to save listing." },
+      { status: 500 }
     );
   }
-
-  const listing = {
-    id: createListingId(payload.title),
-    ...payload,
-    createdAt: new Date().toISOString()
-  };
-
-  await createListing(listing);
-
-  return NextResponse.json({ listing }, { status: 201 });
 }

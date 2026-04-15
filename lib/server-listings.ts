@@ -12,7 +12,7 @@ function hasKvConfig() {
 }
 
 async function readFromKv() {
-  const response = await fetch(`${KV_REST_API_URL}/get/${KV_KEY}`, {
+  const response = await fetch(`${KV_REST_API_URL}/get/${encodeURIComponent(KV_KEY)}`, {
     headers: {
       Authorization: `Bearer ${KV_REST_API_TOKEN}`
     },
@@ -20,7 +20,8 @@ async function readFromKv() {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to read listings from KV: ${response.status}`);
+    const body = await response.text();
+    throw new Error(`Failed to read listings from KV: ${response.status}${body ? ` - ${body}` : ""}`);
   }
 
   const data = (await response.json()) as { result: string | null; error?: string };
@@ -36,7 +37,7 @@ async function readFromKv() {
 }
 
 async function writeToKv(listings: Listing[]) {
-  const response = await fetch(`${KV_REST_API_URL}/set/${KV_KEY}`, {
+  const response = await fetch(`${KV_REST_API_URL}/set/${encodeURIComponent(KV_KEY)}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${KV_REST_API_TOKEN}`,
@@ -46,7 +47,13 @@ async function writeToKv(listings: Listing[]) {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to write listings to KV: ${response.status}`);
+    const body = await response.text();
+    throw new Error(`Failed to write listings to KV: ${response.status}${body ? ` - ${body}` : ""}`);
+  }
+
+  const data = (await response.json()) as { result?: string; error?: string };
+  if (data.error) {
+    throw new Error(data.error);
   }
 }
 

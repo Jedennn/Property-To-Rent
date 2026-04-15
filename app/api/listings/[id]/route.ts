@@ -48,30 +48,37 @@ export async function PUT(request: Request, { params }: ListingRouteProps) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const currentListing = await getListingById(params.id);
+  try {
+    const currentListing = await getListingById(params.id);
 
-  if (!currentListing) {
-    return NextResponse.json({ error: "Listing not found." }, { status: 404 });
-  }
+    if (!currentListing) {
+      return NextResponse.json({ error: "Listing not found." }, { status: 404 });
+    }
 
-  const payload = normalizePayload((await request.json()) as ListingPayload);
+    const payload = normalizePayload((await request.json()) as ListingPayload);
 
-  if (!payload) {
+    if (!payload) {
+      return NextResponse.json(
+        { error: "Title, description, status, and at least one image are required." },
+        { status: 400 }
+      );
+    }
+
+    const listing = {
+      ...currentListing,
+      ...payload,
+      id: params.id
+    };
+
+    await updateListing(params.id, listing);
+
+    return NextResponse.json({ listing });
+  } catch (error) {
     return NextResponse.json(
-      { error: "Title, description, status, and at least one image are required." },
-      { status: 400 }
+      { error: error instanceof Error ? error.message : "Failed to update listing." },
+      { status: 500 }
     );
   }
-
-  const listing = {
-    ...currentListing,
-    ...payload,
-    id: params.id
-  };
-
-  await updateListing(params.id, listing);
-
-  return NextResponse.json({ listing });
 }
 
 export async function DELETE(_: Request, { params }: ListingRouteProps) {
@@ -79,11 +86,18 @@ export async function DELETE(_: Request, { params }: ListingRouteProps) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const deleted = await removeListing(params.id);
+  try {
+    const deleted = await removeListing(params.id);
 
-  if (!deleted) {
-    return NextResponse.json({ error: "Listing not found." }, { status: 404 });
+    if (!deleted) {
+      return NextResponse.json({ error: "Listing not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to delete listing." },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ success: true });
 }
