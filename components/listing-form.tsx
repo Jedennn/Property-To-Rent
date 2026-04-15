@@ -66,8 +66,7 @@ export function ListingForm({ initialListing }: ListingFormProps) {
     setSubmitting(true);
 
     try {
-      const images =
-        files.length > 0 ? await Promise.all(files.map(fileToDataUrl)) : (initialListing?.images ?? []);
+      const images = files.length > 0 ? await Promise.all(files.map(uploadFileToCloudinary)) : (initialListing?.images ?? []);
 
       const payload = {
         title: form.title.trim(),
@@ -237,18 +236,41 @@ export function ListingForm({ initialListing }: ListingFormProps) {
   );
 }
 
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-        return;
-      }
+async function uploadFileToCloudinary(file: File) {
+  const signatureResponse = await fetch("/api/uploads/signature", { cache: "no-store" });
+  const signatureData = (await signatureResponse.json()) as {
+    error?: string;
+    cloudName?: string;
+    apiKey?: string;
+    folder?: string;
+    timestamp?: number;
+    signature?: string;
+  };
 
-      reject(new Error("Invalid file result"));
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+  if (!signatureResponse.ok || !signatureData.cloudName || !signatureData.apiKey || !signatureData.signature) {
+    throw new Error(signatureData.error ?? "Cloudinary upload is not ready yet.");
+  }
+
+  const uploadBody = new FormData();
+  uploadBody.append("file", file);
+  uploadBody.append("api_key", signatureData.apiKey);
+  uploadBody.append("timestamp", String(signatureData.timestamp));
+  uploadBody.append("signature", signatureData.signature);
+  uploadBody.append("folder", signatureData.folder ?? "propertyhub/listings");
+
+  const uploadResponse = await fetch(
+    `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+    {
+      method: "POST",
+      body: uploadBody
+    }
+  );
+
+  const uploadData = (await uploadResponse.json()) as { secure_url?: string; error?: { message?: string } };
+
+  if (!uploadResponse.ok || !uploadData.secure_url) {
+    throw new Error(uploadData.error?.message ?? "Failed to upload image to Cloudinary.");
+  }
+
+  return uploadData.secure_url;
 }

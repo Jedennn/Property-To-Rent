@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createListingId, ListingStatus } from "@/lib/listings";
+import { createListingId, Listing, ListingStatus } from "@/lib/listings";
+import { isAdminSession } from "@/lib/auth";
 import { createListing, getListings } from "@/lib/server-listings";
 
 type ListingPayload = {
@@ -9,7 +10,9 @@ type ListingPayload = {
   images?: string[];
 };
 
-function normalizePayload(payload: ListingPayload) {
+function normalizePayload(
+  payload: ListingPayload
+): Pick<Listing, "title" | "description" | "status" | "images"> | null {
   const title = payload.title?.trim() ?? "";
   const description = payload.description?.trim() ?? "";
   const status = payload.status === "sold" ? "sold" : "available";
@@ -30,6 +33,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isAdminSession()) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   const payload = normalizePayload((await request.json()) as ListingPayload);
 
   if (!payload) {

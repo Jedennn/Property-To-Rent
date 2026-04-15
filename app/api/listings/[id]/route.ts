@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { ListingStatus } from "@/lib/listings";
+import { Listing, ListingStatus } from "@/lib/listings";
+import { isAdminSession } from "@/lib/auth";
 import { getListingById, removeListing, updateListing } from "@/lib/server-listings";
 
 type ListingPayload = {
@@ -9,7 +10,9 @@ type ListingPayload = {
   images?: string[];
 };
 
-function normalizePayload(payload: ListingPayload) {
+function normalizePayload(
+  payload: ListingPayload
+): Pick<Listing, "title" | "description" | "status" | "images"> | null {
   const title = payload.title?.trim() ?? "";
   const description = payload.description?.trim() ?? "";
   const status = payload.status === "sold" ? "sold" : "available";
@@ -41,6 +44,10 @@ export async function GET(_: Request, { params }: ListingRouteProps) {
 }
 
 export async function PUT(request: Request, { params }: ListingRouteProps) {
+  if (!isAdminSession()) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   const currentListing = await getListingById(params.id);
 
   if (!currentListing) {
@@ -68,6 +75,10 @@ export async function PUT(request: Request, { params }: ListingRouteProps) {
 }
 
 export async function DELETE(_: Request, { params }: ListingRouteProps) {
+  if (!isAdminSession()) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   const deleted = await removeListing(params.id);
 
   if (!deleted) {
