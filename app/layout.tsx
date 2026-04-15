@@ -5,8 +5,8 @@ import { isAdminSession } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PropertyHub",
-  description: "Simple property listing website built with Next.js and Tailwind CSS"
+  title: "Sewa Hunian Alam Sutera",
+  description: "Website listing sewa hunian Alam Sutera yang simpel, cepat, dan mudah dipakai"
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
         <header className="border-b border-stone-200 bg-white/90 backdrop-blur">
           <div className="shell flex items-center justify-between py-4">
             <Link href="/" className="text-2xl font-black tracking-tight text-slate-900">
-              Property<span className="text-brand">Hub</span>
+              Sewa Hunian <span className="text-brand">Alam Sutera</span>
             </Link>
             <nav className="flex items-center gap-3 text-sm font-medium">
               <Link

@@ -1,6 +1,6 @@
-# PropertyHub
+# Sewa Hunian Alam Sutera
 
-Simple property listing website built with Next.js and Tailwind CSS.
+Website listing sewa hunian yang dibangun dengan Next.js dan Tailwind CSS.
 
 ## Features
 
