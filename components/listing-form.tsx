@@ -24,6 +24,8 @@ type ListingFormProps = {
 
 const MAX_IMAGE_COUNT = 10;
 const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024;
+const MAX_VIDEO_COUNT = 6;
+const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024;
 
 export function ListingForm({ initialListing }: ListingFormProps) {
   const router = useRouter();
@@ -39,6 +41,8 @@ export function ListingForm({ initialListing }: ListingFormProps) {
   );
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -56,6 +60,20 @@ export function ListingForm({ initialListing }: ListingFormProps) {
     };
   }, [files]);
 
+  useEffect(() => {
+    if (videoFiles.length === 0) {
+      setVideoPreviews([]);
+      return;
+    }
+
+    const nextPreviews = videoFiles.map((file) => URL.createObjectURL(file));
+    setVideoPreviews(nextPreviews);
+
+    return () => {
+      nextPreviews.forEach((preview) => URL.revokeObjectURL(preview));
+    };
+  }, [videoFiles]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -69,13 +87,21 @@ export function ListingForm({ initialListing }: ListingFormProps) {
     setSubmitting(true);
 
     try {
-      const images = files.length > 0 ? await Promise.all(files.map(uploadFileToCloudinary)) : (initialListing?.images ?? []);
+      const images =
+        files.length > 0
+          ? await Promise.all(files.map((file) => uploadFileToCloudinary(file)))
+          : (initialListing?.images ?? []);
+      const videos =
+        videoFiles.length > 0
+          ? await Promise.all(videoFiles.map((file) => uploadFileToCloudinary(file, "video")))
+          : (initialListing?.videos ?? []);
 
       const payload = {
         title: form.title.trim(),
         description: form.description.trim(),
         status: form.status,
-        images
+        images,
+        videos
       };
 
       const response = await fetch(isEditing ? `/api/listings/${initialListing?.id}` : "/api/listings", {
@@ -104,6 +130,7 @@ export function ListingForm({ initialListing }: ListingFormProps) {
           : initialForm
       );
       setFiles([]);
+      setVideoFiles([]);
       router.push(`/listing/${nextListing.id}`);
       router.refresh();
     } catch (error) {
@@ -133,6 +160,28 @@ export function ListingForm({ initialListing }: ListingFormProps) {
 
     setError("");
     setFiles(selected);
+  }
+
+  function handleVideoChange(event: ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files ?? []);
+
+    if (selected.length > MAX_VIDEO_COUNT) {
+      setError(`You can upload up to ${MAX_VIDEO_COUNT} videos per listing.`);
+      event.target.value = "";
+      setVideoFiles([]);
+      return;
+    }
+
+    const oversizedFile = selected.find((file) => file.size > MAX_VIDEO_SIZE_BYTES);
+    if (oversizedFile) {
+      setError(`Each video must be 50 MB or smaller. Problem file: ${oversizedFile.name}`);
+      event.target.value = "";
+      setVideoFiles([]);
+      return;
+    }
+
+    setError("");
+    setVideoFiles(selected);
   }
 
   return (
@@ -217,6 +266,25 @@ export function ListingForm({ initialListing }: ListingFormProps) {
             </p>
           </label>
 
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-700">Videos</span>
+            <input
+              type="file"
+              accept="video/*"
+              multiple
+              onChange={handleVideoChange}
+              className="block w-full rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-4 text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-brand file:px-4 file:py-2 file:font-semibold file:text-white"
+            />
+            {isEditing ? (
+              <p className="mt-2 text-xs text-slate-500">
+                Leave empty to keep current videos, or upload new ones to replace them.
+              </p>
+            ) : null}
+            <p className="mt-2 text-xs text-slate-500">
+              Up to {MAX_VIDEO_COUNT} videos. Maximum 50 MB per video.
+            </p>
+          </label>
+
           {initialListing && files.length === 0 && initialListing.images.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {initialListing.images.map((image, index) => (
@@ -244,6 +312,36 @@ export function ListingForm({ initialListing }: ListingFormProps) {
             </div>
           )}
 
+          {initialListing && videoFiles.length === 0 && (initialListing.videos?.length ?? 0) > 0 ? (
+            <div className="grid gap-3">
+              {(initialListing.videos ?? []).map((video, index) => (
+                <video
+                  key={video + index}
+                  src={video}
+                  controls
+                  preload="metadata"
+                  className="w-full rounded-2xl bg-stone-900"
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {videoPreviews.length > 0 && (
+            <div className="grid gap-3">
+              {videoPreviews.map((preview, index) => (
+                <video
+                  key={preview}
+                  src={preview}
+                  controls
+                  muted
+                  preload="metadata"
+                  className="w-full rounded-2xl bg-stone-900"
+                  aria-label={`Video preview ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+
           {error ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
 
           <button
@@ -259,7 +357,7 @@ export function ListingForm({ initialListing }: ListingFormProps) {
   );
 }
 
-async function uploadFileToCloudinary(file: File) {
+async function uploadFileToCloudinary(file: File, resourceType: "image" | "video" = "image") {
   const signatureResponse = await fetch("/api/uploads/signature", { cache: "no-store" });
   const signatureData = (await readJsonSafely(signatureResponse)) as
     | {
@@ -288,7 +386,7 @@ async function uploadFileToCloudinary(file: File) {
   uploadBody.append("folder", signatureData.folder ?? "propertyhub/listings");
 
   const uploadResponse = await fetch(
-    `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${resourceType}/upload`,
     {
       method: "POST",
       body: uploadBody

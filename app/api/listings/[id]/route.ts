@@ -8,23 +8,27 @@ type ListingPayload = {
   description?: string;
   status?: ListingStatus;
   images?: string[];
+  videos?: string[];
 };
 
 function normalizePayload(
   payload: ListingPayload
-): Pick<Listing, "title" | "description" | "status" | "images"> | null {
+): Pick<Listing, "title" | "description" | "status" | "images" | "videos"> | null {
   const title = payload.title?.trim() ?? "";
   const description = payload.description?.trim() ?? "";
   const status = payload.status === "sold" ? "sold" : "available";
   const images = Array.isArray(payload.images)
     ? payload.images.map((image) => image.trim()).filter(Boolean)
     : [];
+  const videos = Array.isArray(payload.videos)
+    ? payload.videos.map((video) => video.trim()).filter(Boolean).slice(0, 6)
+    : [];
 
   if (!title || !description || images.length === 0) {
     return null;
   }
 
-  return { title, description, status, images };
+  return { title, description, status, images, videos };
 }
 
 type ListingRouteProps = {

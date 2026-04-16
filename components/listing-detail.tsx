@@ -15,6 +15,7 @@ type ListingDetailProps = {
 export function ListingDetail({ listing, isAdmin }: ListingDetailProps) {
   const router = useRouter();
   const gallery = listing.images.filter(Boolean);
+  const videos = (listing.videos ?? []).filter(Boolean).slice(0, 6);
   const [selectedImage, setSelectedImage] = useState(gallery[0]);
   const [deleting, setDeleting] = useState(false);
 
@@ -80,6 +81,22 @@ export function ListingDetail({ listing, isAdmin }: ListingDetailProps) {
               </button>
             ))}
           </div>
+          {videos.length > 0 ? (
+            <div className="rounded-[2rem] bg-white p-5 shadow-card">
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">Video</h2>
+              <div className="mt-4 grid gap-4">
+                {videos.map((video, index) => (
+                  <video
+                    key={video + index}
+                    src={video}
+                    controls
+                    preload="metadata"
+                    className="w-full rounded-2xl bg-stone-900"
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="rounded-[2rem] bg-white p-7 shadow-card">
